@@ -23,6 +23,13 @@ pipeline {
         }
       }
     }
+
+    stage('Grype Scan') {
+        steps {
+            grypeScan scanDest: "docker:${registry}:${env.BUILD_NUMBER}", repName: "scanResult.txt", autoInstall: true
+        }
+    }
+
     stage('Push Image') {
       steps {
         script {
@@ -38,6 +45,18 @@ pipeline {
       steps {
         sh "docker image prune --all --force --filter 'until=48h'"
       }
+    }
+    post {
+        always {
+            recordIssues(
+                qualityGates: [
+                    [criticality: 'FAILURE', integerThreshold: 30, threshold: 30.0, type: 'TOTAL_HIGH'], 
+                    [criticality: 'FAILURE', integerThreshold: 5, threshold: 5.0, type: 'NEW']
+                    ], 
+                    sourceCodeRetention: 'LAST_BUILD', 
+                    tools: [grype()]
+            )
+        }
     }
   }
 }
