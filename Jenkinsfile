@@ -46,6 +46,8 @@ pipeline {
         sh "docker image prune --all --force --filter 'until=48h'"
       }
     }
+  }
+
     post {
         always {
             recordIssues(
@@ -58,5 +60,4 @@ pipeline {
             )
         }
     }
-  }
 }
